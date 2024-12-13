@@ -76,6 +76,23 @@ module.exports = (config) => {
     if (obj) rpClient.sendLog(obj.tempId, data, file);
   }
 
+  function startTestItem(testTitle, method, parentId = null, stats = null) {
+    try {
+      const hasStats = stats || (method !== rp_STEP);
+      return rpClient.startTestItem(
+        {
+          name: testTitle,
+          type: method,
+          hasStats,
+        },
+        launchObj.tempId,
+        parentId
+      );
+    } catch (error) {
+      output.error(`Error starting test item: ${error.message}`);
+    }
+  }
+
   event.dispatcher.on(event.all.before, async () => {
     launchObj = startLaunch();
     try {
@@ -386,3 +403,4 @@ function rpStatus(status) {
   if (status === 'failed') return rp_FAILED;
   return status;
 }
+
