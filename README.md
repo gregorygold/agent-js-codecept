@@ -18,7 +18,7 @@ When enabled this plugin sends information on test runs to ReportPortal server:
 ## Installation
 
 ```sh
-npm i @reportportal/agent-js-codecept --save
+npm i @gregorygold/agent-js-codecept --save
 ```
 
 ## Configuration

@@ -1,39 +1,38 @@
 {
-  "name": "@reportportal/agent-js-codecept",
-  "version": "0.2.3",
-  "description": "Reportportal plugin for Codecept JS tests",
+  "name": "@gregorygold/agent-js-codecept",
+  "version": "1.0.0",
+  "description": "Modified ReportPortal plugin for CodeceptJS tests",
   "repository": {
     "type": "git",
-    "url": "git+ssh://git@github.com:reportportal/agent-js-codecept.git"
+    "url": "git+https://github.com/gregorygold/agent-js-codecept.git"
   },
   "keywords": [
     "codeceptJS",
     "codeceptjs",
-    "browserstack",
+    "reportportal",
     "codeceptjs-reportportal",
-    "codeceptjs-rphelper"
+    "agent-js-codecept"
   ],
-  "author": "Thanh Nguyen <peter.nguyentr@gmail.com>",
+  "author": "Gregory Goldshteyn <goldshteyng@hotmail.com>",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com:reportportal/agent-js-codecept/issues"
+    "url": "https://github.com/gregorygold/agent-js-codecept/issues"
   },
-  "homepage": "https://github.com:reportportal/agent-js-codecept#readme",
-  "main": "index.js",
+  "homepage": "https://github.com/gregorygold/agent-js-codecept#readme",
   "dependencies": {
     "@reportportal/client-javascript": "^5.0.2"
-  },
-  "scripts": {
-    "test": "mocha test/acceptance_test.js --timeout 6000"
-  },
-  "devDependencies": {
-    "chai": "^4.2.0",
-    "codeceptjs": "2.5.0",
-    "eslint": "^6.6.0",
-    "eslint-config-airbnb-base": "^14.0.0",
-    "eslint-plugin-import": "^2.18.2",
-    "lodash": "^4.17.21",
-    "mocha": "^7.0.1",
-    "puppeteer": "^2.1.1"
+    },
+    "scripts": {
+      "test": "mocha test/acceptance_test.js --timeout 6000"
+    },
+    "devDependencies": {
+      "chai": "^4.2.0",
+      "codeceptjs": "^3.6.10", 
+      "eslint": "^8.35.0",
+      "eslint-config-airbnb-base": "^15.0.0",
+      "eslint-plugin-import": "^2.31.0",
+      "lodash": "^4.17.21",
+      "mocha": "^10.2.0",
+      "puppeteer": "^20.0.0"
   }
 }
