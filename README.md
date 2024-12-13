@@ -34,8 +34,9 @@ Example:
     reportportal: {
       enabled: true,
       require: '@reportportal/agent-js-codecept',
-      token: 'YOUR_TOKEN',
       endpoint: 'http://localhost:8080/api/v1',
+      token: 'YOUR_TOKEN',
+      authHeader: 'YOUR_authHeader',
       launchName: 'local launch',
       projectName: 'Awesome_project'
     }
@@ -111,3 +112,4 @@ To debug this plugin run script enabing DEBUG env variable:
 ```
 DEBUG="codeceptjs:reportportal"  npx codeceptjs run
 ```
+

@@ -31,8 +31,9 @@ for (const helperName of screenshotHelpers) {
 }
 
 const defaultConfig = {
-  token: '',
   endpoint: '',
+  token: '', // report portal token
+  authHeader: '', // custom header for authentication
   projectName: '',
   launchName: 'codeceptjs tests',
   launchDescription: '',
@@ -43,17 +44,23 @@ const defaultConfig = {
   mode: 'DEFAULT'
 };
 
-const requiredFields = ['projectName', 'token', 'endpoint'];
-
 
 module.exports = (config) => {
   config = Object.assign(defaultConfig, config);
 
-  for (let field of requiredFields) {
-    if (!config[field]) throw new Error(`ReportPortal config is invalid. Key ${field} is missing in config.\nRequired fields: ${requiredFields} `)
+  // Validate token and authHeader
+  if (!config.token && !config.authHeader) {
+    throw new Error("ReportPortal config is invalid. Both 'token' and 'authHeader' must be provided.");
   }
-  
-  let reportUrl;
+
+  // Validate other required fields
+  const requiredFields = ['projectName', 'endpoint'];
+  for (let field of requiredFields) {
+    if (!config[field]) {
+      throw new Error(`ReportPortal config is invalid. Key '${field}' is missing in config.`);
+    }
+  }
+
   let launchObj;
   let suiteObj;
   let testObj;
@@ -67,7 +74,7 @@ module.exports = (config) => {
 
   function logCurrent(data, file) {
     const obj = stepObj || testObj;
-    if (obj) rpClient.sendLog(obj.tempId, data, file); 
+    if (obj) rpClient.sendLog(obj.tempId, data, file);
   }
 
   event.dispatcher.on(event.all.before, async () => {
@@ -93,8 +100,8 @@ module.exports = (config) => {
     output.debug = (message) => {
       outputDebug(message);
       logCurrent({ level: 'debug', message });
-    }  
-    
+    }
+
     output.error = (message) => {
       outputError(message);
       logCurrent({ level: 'error', message });
@@ -128,7 +135,7 @@ module.exports = (config) => {
   });
 
   event.dispatcher.on(event.step.before, (step) => {
-    recorder.add(async () => {      
+    recorder.add(async () => {
       const parent = await startMetaSteps(step);
       stepObj = startTestItem(step.toString().slice(0, 300), rp_STEP, parent.tempId);
       step.tempId = stepObj.tempId;
@@ -158,7 +165,7 @@ module.exports = (config) => {
     suiteStatus = rp_FAILED;
 
     let retriedTempId;
-    if (test.ctx && test.ctx.test && test.ctx.test.retriedTitle && test.ctx.test._currentRetry > 0 ) {
+    if (test.ctx && test.ctx.test && test.ctx.test.retriedTitle && test.ctx.test._currentRetry > 0) {
       debug(`Retried run of test`);
       retriedTempId = test.ctx.test.tempId
     }
@@ -168,14 +175,14 @@ module.exports = (config) => {
       const step = failedStep;
 
       debug(`Attaching screenshot & error to failed step`);
-  
-      const screenshot = await attachScreenshot();      
+
+      const screenshot = await attachScreenshot();
 
       resp = await rpClient.sendLog(step.tempId, {
         level: 'ERROR',
         message: `${err.stack}`,
         time: step.startTime,
-      }, screenshot).promise; 
+      }, screenshot).promise;
 
     }
 
@@ -188,14 +195,14 @@ module.exports = (config) => {
       await rpClient.sendLog(testTempId, {
         level: 'ERROR',
         message: `${err.stack}`,
-      }).promise;      
+      }).promise;
     }
 
     rpClient.finishTestItem(testTempId, {
       endTime: test.endTime || rpClient.helpers.now(),
       status: rp_FAILED,
       message: `${err.stack}`,
-    });  
+    });
   });
 
   event.dispatcher.on(event.test.passed, (test, err) => {
@@ -203,7 +210,7 @@ module.exports = (config) => {
     rpClient.finishTestItem(test.tempId, {
       endTime: test.endTime || rpClient.helpers.now(),
       status: rp_PASSED,
-    });    
+    });
   });
 
   event.dispatcher.on(event.test.after, (test) => {
@@ -251,9 +258,16 @@ module.exports = (config) => {
     if (!process.env.RP_LAUNCH_ID) await finishLaunch();
   });
 
+  function generateHeaders(config) {
+    const headers = {};
+    if (config.token) headers.Authorization = `Bearer ${config.token}`;
+    if (config.authHeader) headers['x-dvp-auth'] = config.authHeader;
+    return headers;
+  };
+
   function startLaunch(suiteTitle) {
     rpClient = new RPClient({
-      token: config.token,
+      headers: generateHeaders(config),
       endpoint: config.endpoint,
       project: config.projectName,
       debug: config.debug,
@@ -268,7 +282,7 @@ module.exports = (config) => {
       mode: config.mode,
     }
 
-    if (process.env.RP_LAUNCH_ID) { 
+    if (process.env.RP_LAUNCH_ID) {
       options.id = process.env.RP_LAUNCH_ID
     }
 
@@ -277,7 +291,7 @@ module.exports = (config) => {
 
   async function attachScreenshot() {
     if (!helper) return undefined;
-    
+
     const fileName = `${rpClient.helpers.now()}.png`;
     try {
       await helper.saveScreenshot(fileName);
@@ -287,7 +301,7 @@ module.exports = (config) => {
     }
 
     const content = fs.readFileSync(path.join(global.output_dir, fileName));
-    fs.unlinkSync(path.join(global.output_dir, fileName));
+    await fs.promises.unlink(path.join(global.output_dir, fileName));
 
     return {
       name: 'failed.png',
@@ -305,11 +319,10 @@ module.exports = (config) => {
 
       const response = await launch.promise;
 
-      reportUrl = response.link;
       output.print(` 📋 Report #${response.number} saved ➡`, response.link);
       event.emit('reportportal.result', response);
     } catch (error) {
-      console.log(error);
+      output.error(`Failed to finish launch: ${error.message}`);
       debug(error);
     }
   }
@@ -319,7 +332,7 @@ module.exports = (config) => {
     const metaSteps = metaStepsToArray(step.metaStep);
 
     // close current metasteps
-    for (let j = currentMetaSteps.length-1; j >= metaSteps.length; j--) {
+    for (let j = currentMetaSteps.length - 1; j >= metaSteps.length; j--) {
       await finishStep(currentMetaSteps[j]);
     }
 
@@ -328,17 +341,17 @@ module.exports = (config) => {
       if (isEqualMetaStep(metaStep, currentMetaSteps[i])) {
         metaStep.tempId = currentMetaSteps[i].tempId;
         continue;
-      } 
+      }
       // close metasteps other than current
-      for (let j = currentMetaSteps.length-1; j >= i; j--) {
+      for (let j = currentMetaSteps.length - 1; j >= i; j--) {
         await finishStep(currentMetaSteps[j]);
         delete currentMetaSteps[j];
       }
 
-      metaStepObj = currentMetaSteps[i-1] || metaStepObj;
+      metaStepObj = currentMetaSteps[i - 1] || metaStepObj;
 
       const isNested = !!metaStepObj.tempId;
-      metaStepObj = startTestItem(metaStep.toString(), rp_STEP , metaStepObj.tempId || testObj.tempId, false);
+      metaStepObj = startTestItem(metaStep.toString(), rp_STEP, metaStepObj.tempId || testObj.tempId, false);
       metaStep.tempId = metaStepObj.tempId;
       debug(`${metaStep.tempId}: The stepId '${metaStep.toString()}' is started. Nested: ${isNested}`);
     }
@@ -381,8 +394,8 @@ function iterateMetaSteps(step, fn) {
 const isEqualMetaStep = (metastep1, metastep2) => {
   if (!metastep1 && !metastep2) return true;
   if (!metastep1 || !metastep2) return false;
-  return metastep1.actor === metastep2.actor 
-    && metastep1.name === metastep2.name 
+  return metastep1.actor === metastep2.actor
+    && metastep1.name === metastep2.name
     && metastep1.args.join(',') === metastep2.args.join(',');
 };
 
@@ -391,5 +404,6 @@ function rpStatus(status) {
   if (status === 'success') return rp_PASSED;
   if (status === 'failed') return rp_FAILED;
   return status;
-}
+};
+
 
