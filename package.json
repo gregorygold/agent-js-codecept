@@ -1,5 +1,5 @@
 {
-  "name": "@gregorygold/agent-js-codecept",
+  "name": "@verycoolgreg/agent-js-codecept",
   "version": "1.0.0",
   "description": "Modified ReportPortal plugin for CodeceptJS tests",
   "repository": {
@@ -20,19 +20,24 @@
   },
   "homepage": "https://github.com/gregorygold/agent-js-codecept#readme",
   "dependencies": {
+    "@gregorygold/agent-js-codecept": "file:gregorygold-agent-js-codecept-1.0.0.tgz",
     "@reportportal/client-javascript": "^5.0.2"
-    },
-    "scripts": {
-      "test": "mocha test/acceptance_test.js --timeout 6000"
-    },
-    "devDependencies": {
-      "chai": "^4.2.0",
-      "codeceptjs": "^3.6.10", 
-      "eslint": "^8.35.0",
-      "eslint-config-airbnb-base": "^15.0.0",
-      "eslint-plugin-import": "^2.31.0",
-      "lodash": "^4.17.21",
-      "mocha": "^10.2.0",
-      "puppeteer": "^20.0.0"
+  },
+  "scripts": {
+    "test": "mocha test/acceptance_test.js --timeout 6000"
+  },
+  "devDependencies": {
+    "chai": "^4.2.0",
+    "codeceptjs": "^3.6.10",
+    "eslint": "^8.35.0",
+    "eslint-config-airbnb-base": "^15.0.0",
+    "eslint-plugin-import": "^2.31.0",
+    "lodash": "^4.17.21",
+    "mocha": "^10.2.0",
+    "puppeteer": "^20.0.0"
+  },
+  "main": "index.js",
+  "directories": {
+    "test": "test"
   }
 }
