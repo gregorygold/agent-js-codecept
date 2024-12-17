@@ -1,3 +1,5 @@
 package-lock.json
 node_modules
 test/output/*
+reportportal_rsa
+reportportal_rsa.pub
